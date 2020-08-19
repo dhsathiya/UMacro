@@ -47,18 +47,18 @@ def copy_one_to_zero1(key):
 # Main loop
 for event in dev.read_loop():
 
-  if event.type == ecodes.EV_KEY:
-	key = categorize(event)
+	if event.type == ecodes.EV_KEY:
+		key = categorize(event)
 
-	if key.keystate == key.key_down:
-		#print(key.keycode)
-		#print(os.popen('xsel').read())
-		#subprocess.call(["/home/devarshi/macro.sh %s"%str(key.keycode)] , shell=True)
-		m = re.search(r'KEY_\d$', key.keycode)
+		if key.keystate == key.key_down:
+			#print(key.keycode)
+			#print(os.popen('xsel').read())
+			#subprocess.call(["/home/devarshi/macro.sh %s"%str(key.keycode)] , shell=True)
+			m = re.search(r'KEY_\d$', key.keycode)
 
-		if m is not None:
-			copy_one_to_zero(key.keycode)
+			if m is not None:
+				copy_one_to_zero(key.keycode)
 
-		if key.keycode == 'KEY_ESC':
-			keyboard.press_and_release('ctrl+v')
-			os.system('echo Hello World')
+			if key.keycode == 'KEY_ESC':
+				keyboard.press_and_release('ctrl+v')
+				os.system('echo Hello World')
