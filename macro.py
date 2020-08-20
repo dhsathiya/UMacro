@@ -1,8 +1,39 @@
-import os, subprocess, re, pyperclip, keyboard
+import os
+import subprocess
+import re
+import pyperclip
+import keyboard
+import evdev
+
 from evdev import InputDevice, categorize, ecodes
 
-dev = InputDevice('/dev/input/event15')
-dev.grab()
+class bcolors:
+    HEADER = '\033[95m'
+    OKBLUE = '\033[34m'
+    OKGREEN = '\033[32m'
+    OKYELLOW = '\033[33m'
+    WARNING = '\033[93m'
+    FAIL = '\033[31m'
+    ENDC = '\033[0m'
+    BOLD = '\033[1m'
+    UNDERLINE = '\033[4m'
+
+# input device list
+def list_input_devices_and_select():
+
+	devices = [evdev.InputDevice(path) for path in evdev.list_devices()]
+	list_item=0
+	devices.reverse()
+	for device in devices:
+		print( bcolors.OKBLUE ,list_item, ") ", bcolors.ENDC, bcolors.OKYELLOW,device.path, device.name, device.phys, bcolors.ENDC)
+		list_item+=1
+
+	user_selected_input_device_number = int(input("Enter device number to use as macro:"))
+	if user_selected_input_device_number > list_item or user_selected_input_device_number < 0:
+		print(bcolors.FAIL, "Please select an appropriate number", bcolors.ENDC)
+		exit()
+	
+	return devices[user_selected_input_device_number].path
 
 # function to copy the code
 copy_array = [0] * 10
@@ -26,32 +57,19 @@ def copy_one_to_zero(key):
 	print(*copy_array, sep = ", ")
 	print("-------------------------------------")
 
-def copy_one_to_zero1(key):
-	#print("number 0 to 1 pressed: " + key + "last letter is" + key[-1])
-	#print(globals()['copy_%s' % key[-1]])
-	#dpyperclip.copy(globals()['copy_%s' % key[-1]])
-	#globals()['copy_%s' % key[-1]] = os.popen('xsel').read()
-	
-	selected_text = os.popen('xsel')
-	read_selected_text = selected_text.read()
-	selected_text.close()
 
-	if xsel_old_value == read_selected_text:
-		return
+# Init input device
+dev = InputDevice(list_input_devices_and_select())
+dev.grab()
 
-	number_pressed=int(key[-1])
-	if copy_array[number_pressed] != 0:
-		pyperclip.copy(copy_array[number_pressed])
-	copy_array[number_pressed] = read_selected_text
-
-# Main loop
+# Loop to catch key strokes
 for event in dev.read_loop():
 
 	if event.type == ecodes.EV_KEY:
 		key = categorize(event)
 
 		if key.keystate == key.key_down:
-			#print(key.keycode)
+			print(key.keycode)
 			#print(os.popen('xsel').read())
 			#subprocess.call(["/home/devarshi/macro.sh %s"%str(key.keycode)] , shell=True)
 			m = re.search(r'KEY_\d$', key.keycode)
@@ -59,6 +77,6 @@ for event in dev.read_loop():
 			if m is not None:
 				copy_one_to_zero(key.keycode)
 
-			if key.keycode == 'KEY_ESC':
+			if key.keycode == 'KEY_GRAVE':
 				keyboard.press_and_release('ctrl+v')
 				os.system('echo Hello World')
