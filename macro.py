@@ -7,11 +7,12 @@ import evdev
 import sys
 import importlib
 import yaml
-from dmacro_conf import *
 from evdev import InputDevice, categorize, ecodes
 
 # Import dmacro_conf 
-#import_file_name = sys.argv[1]
+import_file_name = sys.argv[1]
+with open(import_file_name, 'r') as f:
+    config = yaml.safe_load(f)
 
 
 # Event key pressed value
@@ -116,23 +117,18 @@ for event in dev.read_loop():
 		if key.keystate == key.key_down:
 			print(key.keycode)
 			
-			key_pressed_config_value = eval(key.keycode)
-
+			key_pressed_config_value = config[key.keycode]
 			config_command = key_pressed_config_value.split(' ', 1)[0] 
 			function_name_call = config_command + '()'
 			
 			if config_command == 'execute_shell':
 				config_command_to_execute = key_pressed_config_value.split(' ', 1)[1]
 				function_name_call = config_command + '(' + config_command_to_execute + ')'
-				#print("REACHED EXECUTE")
-				#print(config_command)
-				#print(config_command_to_execute)
 			
 			if config_command == 'execute':
 				config_command_to_execute = key_pressed_config_value.split(' ', 1)[1]
 				function_name_call = config_command + '(' + config_command_to_execute + ')'
 
-			#eval(function_name)
 			try:
 			    eval(function_name_call)
 			except NameError:
