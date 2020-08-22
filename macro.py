@@ -4,9 +4,32 @@ import re
 import pyperclip
 import keyboard
 import evdev
-
+import sys
+import importlib
+import yaml
 from evdev import InputDevice, categorize, ecodes
 
+# Import dmacro_conf 
+import_file_name = sys.argv[1]
+with open(import_file_name, 'r') as f:
+    config = yaml.safe_load(f)
+
+
+# Event key pressed value
+# key_pressed = key.keycode
+key_pressed = "NULL"
+
+# Sub command of
+config_command_to_execute = "NULL"
+
+# clip board array of size 10.
+# can store 10 clips
+copy_array = [0] * 10
+
+# value of last clip to stop overriding
+xsel_old_value = "NULL"
+
+# Class for text colors
 class bcolors:
 	HEADER = '\033[95m'
 	OKBLUE = '\033[34m'
@@ -18,6 +41,9 @@ class bcolors:
 	BOLD = '\033[1m'
 	UNDERLINE = '\033[4m'
 
+# ---------------------
+# INITIAL PART
+# ---------------------
 # input device list
 def list_input_devices_and_select():
 
@@ -35,14 +61,15 @@ def list_input_devices_and_select():
 	
 	return devices[user_selected_input_device_number].path
 
-# function to copy the code
-copy_array = [0] * 10
-xsel_old_value = "NULL"
-
-def copy_one_to_zero(key):
-
+# ---------------------
+# DMACRO FEATURES
+# ---------------------
+# function to copy
+def copy_to_clipboard():
+	global key_pressed
+	key_pressed = key.keycode
 	global xsel_old_value
-	number_pressed = int(key[-1])
+	number_pressed = int(key_pressed[-1])
 	xsel_current_value = os.popen('xsel').read()
 
 	if xsel_current_value != xsel_old_value:
@@ -57,7 +84,26 @@ def copy_one_to_zero(key):
 	print(*copy_array, sep = ", ")
 	print("-------------------------------------")
 
+# function to paste
+# ctrl + v
+def paste():
+	keyboard.press_and_release('ctrl+v')
 
+# terminal paste
+def term_paste():
+	keyboard.press_and_release('ctrl+shift+v')
+
+def execute(cmd):
+	subprocess.call(["xdotool", "type", cmd])
+	keyboard.press_and_release('enter')
+
+# function to execute shell script
+def execute_shell(cmd):
+	subprocess.Popen(cmd, shell=True, executable='/bin/bash')
+
+# ---------------------
+# MAIN FUNCTION 
+# ---------------------
 # Init input device
 dev = InputDevice(list_input_devices_and_select())
 dev.grab()
@@ -70,8 +116,32 @@ for event in dev.read_loop():
 
 		if key.keystate == key.key_down:
 			print(key.keycode)
+			
+			key_pressed_config_value = config[key.keycode]
+			config_command = key_pressed_config_value.split(' ', 1)[0] 
+			function_name_call = config_command + '()'
+			
+			if config_command == 'execute_shell':
+				config_command_to_execute = key_pressed_config_value.split(' ', 1)[1]
+				function_name_call = config_command + '(' + config_command_to_execute + ')'
+			
+			if config_command == 'execute':
+				config_command_to_execute = key_pressed_config_value.split(' ', 1)[1]
+				function_name_call = config_command + '(' + config_command_to_execute + ')'
+
+			try:
+			    eval(function_name_call)
+			except NameError:
+			    print("Not in scope!")
+			else:
+			    print("In scope!")
+
+
+			'''
+			#eval( key_pressed + '(' + key.keycode + ')')
 			#print(os.popen('xsel').read())
 			#subprocess.call(["/home/devarshi/macro.sh %s"%str(key.keycode)] , shell=True)
+
 			m = re.search(r'KEY_\d$', key.keycode)
 
 			if m is not None:
@@ -80,3 +150,4 @@ for event in dev.read_loop():
 			if key.keycode == 'KEY_GRAVE':
 				keyboard.press_and_release('ctrl+v')
 				os.system('echo Hello World')
+			'''
