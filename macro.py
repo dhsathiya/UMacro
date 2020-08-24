@@ -94,12 +94,15 @@ def term_paste():
 	keyboard.press_and_release('ctrl+shift+v')
 
 def execute(cmd):
-	subprocess.call(["xdotool", "type", cmd])
+	keyboard.write(cmd, delay=0, restore_state_after=True, exact=None)
 	keyboard.press_and_release('enter')
 
 # function to execute shell script
 def execute_shell(cmd):
 	subprocess.Popen(cmd, shell=True, executable='/bin/bash')
+
+def type(cmd):
+	keyboard.write(cmd, delay=0, restore_state_after=True, exact=None)
 
 # ---------------------
 # MAIN FUNCTION 
@@ -126,6 +129,10 @@ for event in dev.read_loop():
 				function_name_call = config_command + '(' + config_command_to_execute + ')'
 			
 			if config_command == 'execute':
+				config_command_to_execute = key_pressed_config_value.split(' ', 1)[1]
+				function_name_call = config_command + '(' + config_command_to_execute + ')'
+
+			if config_command == 'type':
 				config_command_to_execute = key_pressed_config_value.split(' ', 1)[1]
 				function_name_call = config_command + '(' + config_command_to_execute + ')'
 
