@@ -1,6 +1,6 @@
 #!/bin/bash
 
-umacro_version="v0.0.1"
+umacro_version="v0.0.2"
 
 mkdir /etc/umacro
 touch /etc/umacro/umacro_conf.yml
