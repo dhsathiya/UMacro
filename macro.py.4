@@ -1,24 +1,22 @@
 import os
 import subprocess
+import re
 import pyperclip
 import keyboard
 import evdev
 import sys
+import importlib
 import yaml
 import signal
 from evdev import InputDevice, categorize, ecodes
 
-# Check if sudo or not
-
-# Import umacro_conf
+# Import dmacro_conf
 # Open YAML config file
-with open("/etc/umacro/umacro_conf.yml", 'r') as f:
+with open("dmacro_conf.yml", 'r') as f:
     config = yaml.safe_load(f)
 
-# debug key check
-debug_key_check = False
-
 # Event key pressed value
+# key_pressed = key.keycode
 key_pressed = None
 
 # Sub command of
@@ -67,7 +65,7 @@ def list_input_devices_and_select():
 
 
 # ---------------------
-# Umacro FEATURES
+# DMACRO FEATURES
 # ---------------------
 # function to copy
 def copy_to_clipboard():
@@ -100,7 +98,6 @@ def term_paste():
     keyboard.press_and_release('ctrl+shift+v')
 
 
-# Execute command
 def execute(cmd):
     keyboard.write(cmd, delay=0, restore_state_after=True, exact=None)
     keyboard.press_and_release('enter')
@@ -111,14 +108,9 @@ def execute_shell(cmd):
     subprocess.Popen(cmd, shell=True, executable='/bin/bash')
 
 
-# Type
-def typeto(cmd):
+def type(cmd):
     keyboard.write(cmd, delay=0, restore_state_after=True, exact=None)
 
-
-# Send keystroke
-def keystroke(cmd):
-    keyboard.press_and_release(cmd)
 
 # ---------------------
 # MAIN FUNCTION 
@@ -139,8 +131,7 @@ def main():
             key = categorize(event)
 
             if key.keystate == key.key_down:
-                if debug_key_check:
-                    print(key.keycode)
+                # print(key.keycode)
                 key_pressed = key.keycode
                 if key.keycode in config:
                     key_pressed_config_value = config[key.keycode]
@@ -155,11 +146,7 @@ def main():
                         config_command_to_execute = key_pressed_config_value.split(' ', 1)[1]
                         function_name_call = config_command + '(' + config_command_to_execute + ')'
 
-                    if config_command == 'typeto':
-                        config_command_to_execute = key_pressed_config_value.split(' ', 1)[1]
-                        function_name_call = config_command + '(' + config_command_to_execute + ')'
-
-                    if config_command == 'keystroke':
+                    if config_command == 'type':
                         config_command_to_execute = key_pressed_config_value.split(' ', 1)[1]
                         function_name_call = config_command + '(' + config_command_to_execute + ')'
 
@@ -170,22 +157,19 @@ def main():
 pidfile = "/tmp/mydaemon.pid"
 
 if len(sys.argv) > 1:
-    if sys.argv[1] == "terminate":
+    print("OK")
+    if sys.argv[1] == "kill":
         f = open(pidfile, "r").read()
-        print("Terminating Process", f)
+        print("KILLING", f)
         os.kill(int(f), signal.SIGTERM)
         os.remove(pidfile)
         exit()
-    if sys.argv[1] == "check-key":
-        dev = InputDevice(list_input_devices_and_select())
-        dev.grab()
-        debug_key_check = True
-        main()
 else:
-    pass
+    print("NOPE")
+
 
 if os.path.isfile(pidfile):
-    print("Other instance of Umacro is still running.")
+    print("%s already exists, exiting" % pidfile)
     sys.exit()
 try:
     dev = InputDevice(list_input_devices_and_select())
