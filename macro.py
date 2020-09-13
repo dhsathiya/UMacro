@@ -167,7 +167,7 @@ def main():
 
 
 # Process related
-pidfile = "/tmp/mydaemon.pid"
+pidfile = "/tmp/umacro.pid"
 
 if len(sys.argv) > 1:
     if sys.argv[1] == "terminate":
