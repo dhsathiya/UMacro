@@ -75,6 +75,8 @@ KEY_CODE: "FUNCTION 'ARGUMENT'"
 7. term_paste
 	- Paste for terminal: <kbd>ctrl</kbd> + <kbd>shift</kbd> + <kbd>v</kbd>
 
+## Dependency
+[xdotool](http://manpages.ubuntu.com/manpages/trusty/man1/xdotool.1.html) for better support on special characters. Also works without it.
 
 ## ToDo
 1. Fix dirty code.
