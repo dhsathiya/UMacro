@@ -6,6 +6,7 @@ import evdev
 import sys
 import yaml
 import signal
+from shutil import which
 from evdev import InputDevice, categorize, ecodes
 
 # Check if sudo or not
@@ -102,7 +103,10 @@ def term_paste():
 
 # Execute command
 def execute(cmd):
-    keyboard.write(cmd, delay=0, restore_state_after=True, exact=None)
+    if which("xdotool"):
+        subprocess.call(["xdotool", "type", cmd])
+    else:
+        keyboard.write(cmd, delay=0, restore_state_after=True, exact=None)
     keyboard.press_and_release('enter')
 
 
@@ -113,8 +117,10 @@ def execute_shell(cmd):
 
 # Type
 def typeto(cmd):
-    keyboard.write(cmd, delay=0, restore_state_after=True, exact=None)
-
+    if which("xdotool"):
+        subprocess.call(["xdotool", "type", cmd])
+    else:
+        keyboard.write(cmd, delay=0, restore_state_after=True, exact=None)
 
 # Send keystroke
 def keystroke(cmd):
@@ -175,7 +181,7 @@ if len(sys.argv) > 1:
         print("Terminating Process", f)
         os.kill(int(f), signal.SIGTERM)
         os.remove(pidfile)
-        exit()
+        sys.exit()
     if sys.argv[1] == "check-key":
         dev = InputDevice(list_input_devices_and_select())
         dev.grab()
